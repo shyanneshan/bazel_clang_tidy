@@ -1,6 +1,10 @@
 """
-clang-tidy fix rule
+clang-tidy apply fixes rule and configurable aspect
 """
+
+load("//clang_tidy:clang_tidy.bzl", _make_clang_tidy_aspect = "make_clang_tidy_aspect")
+
+make_clang_tidy_aspect = _make_clang_tidy_aspect
 
 def _clang_tidy_apply_fixes_impl(ctx):
     apply_fixes = ctx.actions.declare_file(
@@ -11,22 +15,43 @@ def _clang_tidy_apply_fixes_impl(ctx):
     if len(config) != 1:
         fail(":config ({}) must contain a single file".format(config))
 
-    apply_bin = ctx.attr._apply_replacements_binary.files_to_run.executable
+    apply_replacements = ctx.attr.apply_replacements_binary or ctx.attr._apply_replacements_binary
+    tidy_binary = ctx.attr.tidy_binary or ctx.attr._tidy_binary
+    tidy_config = ctx.attr.tidy_config or ctx.attr._tidy_config
+
+    apply_bin = apply_replacements.files_to_run.executable
     apply_path = apply_bin.path if apply_bin else "clang-apply-replacements"
+
+    # get the workspace of bazel_clang_tidy, not where this update rule is
+    # defined
+    workspace = ctx.attr._template.label.workspace_name
 
     ctx.actions.expand_template(
         template = ctx.attr._template.files.to_list()[0],
         output = apply_fixes,
         substitutions = {
             "@APPLY_REPLACEMENTS_BINARY@": apply_path,
-            "@TIDY_BINARY@": str(ctx.attr._tidy_binary.label),
-            "@TIDY_CONFIG@": str(ctx.attr._tidy_config.label),
-            "@WORKSPACE@": ctx.label.workspace_name,
+            "@TIDY_BINARY@": str(tidy_binary.label),
+            "@TIDY_CONFIG@": str(tidy_config.label),
+            "@WORKSPACE@": workspace,
         },
     )
 
+    tidy_bin = tidy_binary.files_to_run.executable
+
+    runfiles = ctx.runfiles(
+        (
+            [apply_bin] if apply_bin else [] +
+            [tidy_bin] if tidy_bin else [] +
+            tidy_config.files.to_list()
+        ),
+    )
+
     return [
-        DefaultInfo(executable = apply_fixes),
+        DefaultInfo(
+            executable = apply_fixes,
+            runfiles = runfiles,
+        ),
         # support use of a .bazelrc config containing `--output_groups=report`
         # for example, bazel run @bazel_clang_tidy//:apply_fixes --config=clang-tidy ...
         # with
@@ -45,6 +70,15 @@ clang_tidy_apply_fixes = rule(
         "_tidy_binary": attr.label(default = Label("//:clang_tidy_executable")),
         "_apply_replacements_binary": attr.label(
             default = Label("//:clang_apply_replacements_executable"),
+        ),
+        "apply_replacements_binary": attr.label(
+            doc = "Set clang-apply-replacements binary to use. Overrides //:clang_apply_replacements_executable.",
+        ),
+        "tidy_binary": attr.label(
+            doc = "Set clang-tidy binary to use. Overrides //:clang_tidy_executable.",
+        ),
+        "tidy_config": attr.label(
+            doc = "Set clang-tidy config to use. Overrides //:clang_tidy_config.",
         ),
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],

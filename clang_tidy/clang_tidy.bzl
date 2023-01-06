@@ -132,15 +132,18 @@ def _clang_tidy_aspect_impl(target, ctx):
         OutputGroupInfo(report = depset(direct = outputs)),
     ]
 
-clang_tidy_aspect = aspect(
-    implementation = _clang_tidy_aspect_impl,
-    fragments = ["cpp"],
-    attrs = {
-        "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
-        "_clang_tidy_wrapper": attr.label(default = Label("//clang_tidy:clang_tidy")),
-        "_clang_tidy_executable": attr.label(default = Label("//:clang_tidy_executable")),
-        "_clang_tidy_additional_deps": attr.label(default = Label("//:clang_tidy_additional_deps")),
-        "_clang_tidy_config": attr.label(default = Label("//:clang_tidy_config")),
-    },
-    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
-)
+def make_clang_tidy_aspect(binary = None, config = None):
+    return aspect(
+        implementation = _clang_tidy_aspect_impl,
+        fragments = ["cpp"],
+        attrs = {
+            "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
+            "_clang_tidy_wrapper": attr.label(default = Label("//clang_tidy:clang_tidy")),
+            "_clang_tidy_executable": attr.label(default = Label(binary or "//:clang_tidy_executable")),
+            "_clang_tidy_additional_deps": attr.label(default = Label("//:clang_tidy_additional_deps")),
+            "_clang_tidy_config": attr.label(default = Label(config or "//:clang_tidy_config")),
+        },
+        toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+    )
+
+clang_tidy_aspect = make_clang_tidy_aspect()
