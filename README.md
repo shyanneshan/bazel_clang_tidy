@@ -95,6 +95,54 @@ As with running clang-tidy, the binary target can be specified with
 clang-apply-replacements can be specified with
 `--@bazel_clang_tidy//:clang_apply_replacements_executable`.
 
+### defaults without `.bazelrc`
+
+Both the aspect and update rule can be defined locally to bake in a default
+binary or config.
+
+```python
+# //:BUILD.bazel
+load("@bazel_clang_tidy//:defs.bzl", "clang_tidy_apply_fixes")
+
+alias(
+    name = "default_apply_replacements_binary",
+    actual = "@llvm_toolchain//:clang-apply-replacements",
+)
+
+alias(
+    name = "default_tidy_binary",
+    actual = "@llvm_toolchain//:clang-format",
+)
+
+filegroup(
+    name = "default_tidy_config",
+    srcs = [".clang-tidy"]
+    visibility = ["//visibility:public"],
+)
+
+clang_tidy_apply_fixes(
+    name = "clang_tidy_apply_fixes",
+    apply_replacements_binary = ":default_apply_replacements_binary",
+    tidy_binary = ":default_tidy_binary",
+    tidy_config = ":default_tidy_config",
+)
+```
+
+```python
+# //:aspects.bzl
+load("@bazel_clang_tidy//:defs.bzl", "make_clang_tidy_aspect")
+
+clang_tidy = make_clang_tidy_aspect(
+    binary = "//:default_tidy_binary",
+    config = "//:default_tidy_config",
+)
+```
+
+```sh
+bazel run //:clang_tidy_apply_fixes
+bazel build //... --aspects //:aspects.bzl%clang_tidy --output_groups=report
+```
+
 ## Features
 
 - Run clang-tidy on any C++ target
