@@ -10,7 +10,8 @@ bazel_tidy_config=(\
 "--aspects=@@WORKSPACE@//clang_tidy:clang_tidy.bzl%clang_tidy_aspect" \
 "--@@WORKSPACE@//:clang_tidy_executable=@TIDY_BINARY@" \
 "--@@WORKSPACE@//:clang_tidy_config=@TIDY_CONFIG@" \
-"--output_groups=report")
+"--output_groups=report" \
+@EXTRA_CONFIG_ARGS@)
 
 cd $BUILD_WORKSPACE_DIRECTORY
 
