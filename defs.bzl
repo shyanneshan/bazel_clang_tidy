@@ -26,6 +26,15 @@ def _clang_tidy_apply_fixes_impl(ctx):
     # defined
     workspace = ctx.attr._template.label.workspace_name
 
+    from_string_list = lambda args: (
+        "{}".format(" ".join(
+            [
+                "'{}'".format(arg)
+                for arg in args
+            ],
+        ))
+    )
+
     ctx.actions.expand_template(
         template = ctx.attr._template.files.to_list()[0],
         output = apply_fixes,
@@ -34,6 +43,7 @@ def _clang_tidy_apply_fixes_impl(ctx):
             "@TIDY_BINARY@": str(tidy_binary.label),
             "@TIDY_CONFIG@": str(tidy_config.label),
             "@WORKSPACE@": workspace,
+            "@EXTRA_CONFIG_ARGS@": from_string_list(ctx.attr.extra_config_args),
         },
     )
 
@@ -80,6 +90,9 @@ clang_tidy_apply_fixes = rule(
         "tidy_config": attr.label(
             doc = "Set clang-tidy config to use. Overrides //:clang_tidy_config.",
         ),
+        "extra_config_args": attr.string_list(
+            doc = "Extra Bazel config arguments to pass.",
+        )
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     executable = True,
