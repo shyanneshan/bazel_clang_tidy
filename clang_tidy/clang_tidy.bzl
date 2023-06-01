@@ -10,11 +10,13 @@ def _run_tidy(
         compilation_context,
         infile,
         discriminator):
+    exe_input = [exe.files_to_run.executable] + exe.data_runfiles.files.to_list() if exe.files_to_run.executable else []
+
     inputs = depset(
         direct = (
             [infile, config] +
             additional_deps.files.to_list() +
-            ([exe.files_to_run.executable] if exe.files_to_run.executable else [])
+            exe_input
         ),
         transitive = [compilation_context.headers],
     )
@@ -23,7 +25,7 @@ def _run_tidy(
 
     # specify the output file - twice
     outfile = ctx.actions.declare_file(
-        "bazel_clang_tidy_" + infile.path + "." + discriminator + ".clang-tidy.yaml",
+        infile.path + "." + discriminator + ".clang-tidy.yaml",
     )
 
     # this is consumed by the wrapper script
