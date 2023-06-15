@@ -52,8 +52,8 @@ def _clang_tidy_apply_fixes_impl(ctx):
     runfiles = ctx.runfiles(
         (
             [apply_bin] if apply_bin else [] +
-            [tidy_bin] if tidy_bin else [] +
-            tidy_config.files.to_list()
+                                          [tidy_bin] if tidy_bin else [] +
+                                                                      tidy_config.files.to_list()
         ),
     )
 
@@ -92,7 +92,7 @@ clang_tidy_apply_fixes = rule(
         ),
         "extra_config_args": attr.string_list(
             doc = "Extra Bazel config arguments to pass.",
-        )
+        ),
     },
     toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
     executable = True,
