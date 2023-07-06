@@ -152,7 +152,15 @@ def _clang_tidy_aspect_impl(target, ctx):
     exe = ctx.attr._clang_tidy_executable
     additional_deps = ctx.attr._clang_tidy_additional_deps
     config = ctx.attr._clang_tidy_config.files.to_list()[0]
-    flags = _toolchain_flags(ctx) + getattr(ctx.rule.attr, "copts", [])
+
+    # NOTE: I think the proper thing to do here is to use
+    # cc_helper.get_copts, but that doesn't appear to be exposed.
+    # https://github.com/bazelbuild/bazel/blob/60c9cf3643148b6dce4a6549363f71656dde760c/src/main/starlark/builtins_bzl/common/cc/cc_helper.bzl#L1247
+    copts = [
+        ctx.expand_location(copt)
+        for copt in getattr(ctx.rule.attr, "copts", [])
+    ]
+    flags = _toolchain_flags(ctx) + copts
     compilation_context = target[CcInfo].compilation_context
 
     outputs = [
