@@ -128,6 +128,23 @@ def _toolchain_flags(ctx):
         for include_dir in cc_toolchain.built_in_include_directories
     ]
 
+    # Clang C++ standard library headers must be found first:
+    # https://github.com/llvm/llvm-project/commit/8cedff10a18d8eba9190a645626fa6a509c1f139
+    #
+    # We expect to find directories such as:
+    # include/c++/v1
+    # include/x86_64-unknown-linux-gnu/c++/v1
+    # lib/clang/16/include
+    # lib/clang/16/share
+    top = []
+    bot = []
+    for inc in system_includes:
+        if "lib/clang/" in inc or "c++/v1" in inc:
+            top.append(inc)
+        else:
+            bot.append(inc)
+    system_includes = top + bot
+
     feature_configuration = cc_common.configure_features(
         ctx = ctx,
         cc_toolchain = cc_toolchain,
