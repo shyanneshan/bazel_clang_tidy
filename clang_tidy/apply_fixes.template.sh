@@ -51,13 +51,14 @@ for file in $exported_fixes; do
         > "$suggested_fixes"
 
     # resolve symlinks and relative paths
-    while path=$(grep --max-count=1 '_virtual_includes\|\./' "$suggested_fixes" \
-                  | sed "s:\s\+FilePath\:\s\+'\(.*\)':\1:" || true); do
+    while path=$(grep --max-count=1 'FilePath.*_virtual_includes\|FilePath.*\./' "$suggested_fixes" \
+                  | sed "s:^.*\s\+FilePath\:\s\+'\(.*\)':\1:"); do
         if [ -z "$path" ]; then
             break
         fi
-
-        sed -i "s:$path:$(readlink -f $path):" "$suggested_fixes"
+        
+        resolved=$(readlink -f $path)
+        sed -i "s:$path:$resolved:" "$suggested_fixes"
     done
 
     # remove the original exported fixes, otherwise they are found by
