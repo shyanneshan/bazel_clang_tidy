@@ -1,11 +1,6 @@
-UseColor: true
-
-Checks: >
-    bugprone-*,
-    cppcoreguidelines-*,
-    google-*,
-    performance-*,
-
-HeaderFilterRegex: ".*"
-
-WarningsAsErrors: "*"
+---
+Checks:          'readability-braces-around-statements'
+WarningsAsErrors: true
+HeaderFilterRegex: ''
+AnalyzeTemporaryDtors: false
+FormatStyle:     google
