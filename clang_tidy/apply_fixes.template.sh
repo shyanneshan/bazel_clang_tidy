@@ -65,4 +65,4 @@ for file in $exported_fixes; do
     rm -f "$file"
 done
 
-@APPLY_REPLACEMENTS_BINARY@ -remove-change-desc-files .
+@APPLY_REPLACEMENTS_BINARY@ .
