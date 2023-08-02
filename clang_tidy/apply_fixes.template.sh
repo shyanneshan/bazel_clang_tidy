@@ -22,8 +22,7 @@ exported_fixes=$("$bazel" aquery \
                           "${bazel_tidy_config[@]}" \
                      | grep 'Outputs:' \
                      | sed 's:^\s\+Outputs\: \[\(.*\)\]$:\1:')
-echo exported_fixes:
-echo $exported_fixes
+
 "$bazel" build \
          --noshow_progress \
          --ui_event_filters=-info,-error,-stdout,-stderr \
@@ -32,7 +31,7 @@ echo $exported_fixes
          "${@:-//...}" || true
 
 for file in $exported_fixes; do
-
+    cat $file
     # get the build directory which is probably some sandbox
     build_dir=$(grep --max-count=1 'BuildDirectory:' "$file" \
                      | sed "s:\s\+BuildDirectory\:\s\+'\(.*\)':\1:" || true)
@@ -41,15 +40,10 @@ for file in $exported_fixes; do
     if [ -z "$build_dir" ]; then
         continue
     fi
-    echo build_dir:
-    echo $build_dir
-    echo file:
-    echo $file
+
     # relative path of a fix file copied to BUILD_WORKSPACE_DIRECTORY
     suggested_fixes=$(basename "$file")
 
-    echo suggested_fixes:
-    echo $suggested_fixes
     # strip the build_dir prefix
     # and set BuildDirectory to empty
     # so clang-apply-replacements won't look for it
