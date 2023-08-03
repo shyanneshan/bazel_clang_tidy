@@ -19,9 +19,7 @@ exported_fixes=$("$bazel" aquery \
                           "mnemonic(\"ClangTidy\", kind(\"cc_.* rule\", $targets))" \
                           --noshow_progress \
                           --ui_event_filters=-info \
-                          "${bazel_tidy_config[@]}" \
-                     | grep 'Outputs:' \
-                     | sed 's:^\s\+Outputs\: \[\(.*\)\]$:\1:')
+                          "${bazel_tidy_config[@]}" )
 
 "$bazel" build \
          --noshow_progress \
