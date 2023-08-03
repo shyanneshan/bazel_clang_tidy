@@ -20,7 +20,7 @@ exported_fixes=$("$bazel" aquery \
                           --noshow_progress \
                           --ui_event_filters=-info \
                           "${bazel_tidy_config[@]}" )
-
+echo $exported_fixes
 "$bazel" build \
          --noshow_progress \
          --ui_event_filters=-info,-error,-stdout,-stderr \
@@ -29,8 +29,8 @@ exported_fixes=$("$bazel" aquery \
          "${@:-//...}" || true
 
 for file in $exported_fixes; do
-    cat $file
-    # get the build directory which is probably some sandbox
+    echo $file
+      # get the build directory which is probably some sandbox
     build_dir=$(grep --max-count=1 'BuildDirectory:' "$file" \
                      | sed "s:\s\+BuildDirectory\:\s\+'\(.*\)':\1:" || true)
 
